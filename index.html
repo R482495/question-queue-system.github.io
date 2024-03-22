@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>���⏇�ԑ҂��V�X�e��</title>
+    <style>
+        /* CSS for table styling */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>���⏇�ԑ҂��V�X�e��</h1>
+
+    <!-- Form to add a new question -->
+    <form id="addQuestionForm">
+        <label for="name">���O:</label>
+        <input type="text" id="name" name="name" required><br><br>
+        <label for="seat">����:</label>
+        <input type="text" id="seat" name="seat" required><br><br>
+        <button type="submit">���₷��</button>
+    </form>
+
+    <!-- Display of question queue -->
+    <h2>���⏇��</h2>
+    <table id="questionTable">
+        <thead>
+            <tr>
+                <th>���O</th>
+                <th>����</th>
+                <th>���</th>
+                <th>�Ή�</th>
+            </tr>
+        </thead>
+        <tbody id="questionList">
+            <!-- Questions will be dynamically added here -->
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("addQuestionForm");
+            const questionList = document.getElementById("questionList");
+
+            form.addEventListener("submit", function (event) {
+                event.preventDefault();
+                const name = form.elements["name"].value;
+                const seat = form.elements["seat"].value;
+                addQuestion(name, seat);
+                form.reset();
+            });
+
+            function addQuestion(name, seat) {
+                const tableRow = document.createElement("tr");
+                tableRow.innerHTML = `
+          <td>${name}</td>
+          <td>${seat}</td>
+          <td>Pending</td>
+          <td><button class="completeBtn">����</button><button class="waitBtn">�搶�Ή��҂�</button></td>
+        `;
+
+                const completeBtn = tableRow.querySelector(".completeBtn");
+                const waitBtn = tableRow.querySelector(".waitBtn");
+
+                completeBtn.addEventListener("click", function () {
+                    tableRow.remove();
+                });
+
+                waitBtn.addEventListener("click", function () {
+                    waitBtn.disabled = true;
+                    completeBtn.disabled = false;
+                    const statusCell = tableRow.querySelector("td:nth-child(3)");
+                    statusCell.textContent = "�搶�Ή��҂�";
+                });
+
+                completeBtn.addEventListener("click", function () {
+                    const statusCell = tableRow.querySelector("td:nth-child(3)");
+                    statusCell.textContent = "����";
+                    completeBtn.disabled = true;
+                    waitBtn.disabled = false;
+                });
+
+                questionList.appendChild(tableRow);
+            }
+        });
+    </script>
+
+</body>
+
+</html>
