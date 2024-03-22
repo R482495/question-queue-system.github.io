@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>���⏇�ԑ҂��V�X�e��</title>
+    <title>質問順番待ちシステム</title>
     <style>
         /* CSS for table styling */
         table {
@@ -26,26 +26,26 @@
 </head>
 
 <body>
-    <h1>���⏇�ԑ҂��V�X�e��</h1>
+    <h1>質問順番待ちシステム</h1>
 
     <!-- Form to add a new question -->
     <form id="addQuestionForm">
-        <label for="name">���O:</label>
+        <label for="name">名前:</label>
         <input type="text" id="name" name="name" required><br><br>
-        <label for="seat">����:</label>
+        <label for="seat">座席:</label>
         <input type="text" id="seat" name="seat" required><br><br>
-        <button type="submit">���₷��</button>
+        <button type="submit">質問する</button>
     </form>
 
     <!-- Display of question queue -->
-    <h2>���⏇��</h2>
+    <h2>質問順番</h2>
     <table id="questionTable">
         <thead>
             <tr>
-                <th>���O</th>
-                <th>����</th>
-                <th>���</th>
-                <th>�Ή�</th>
+                <th>名前</th>
+                <th>座席</th>
+                <th>状態</th>
+                <th>対応</th>
             </tr>
         </thead>
         <tbody id="questionList">
@@ -72,7 +72,7 @@
           <td>${name}</td>
           <td>${seat}</td>
           <td>Pending</td>
-          <td><button class="completeBtn">����</button><button class="waitBtn">�搶�Ή��҂�</button></td>
+          <td><button class="completeBtn">完成</button><button class="waitBtn">先生対応待ち</button></td>
         `;
 
                 const completeBtn = tableRow.querySelector(".completeBtn");
@@ -86,12 +86,12 @@
                     waitBtn.disabled = true;
                     completeBtn.disabled = false;
                     const statusCell = tableRow.querySelector("td:nth-child(3)");
-                    statusCell.textContent = "�搶�Ή��҂�";
+                    statusCell.textContent = "先生対応待ち";
                 });
 
                 completeBtn.addEventListener("click", function () {
                     const statusCell = tableRow.querySelector("td:nth-child(3)");
-                    statusCell.textContent = "����";
+                    statusCell.textContent = "完成";
                     completeBtn.disabled = true;
                     waitBtn.disabled = false;
                 });
