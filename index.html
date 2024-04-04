@@ -72,7 +72,7 @@
           <td>${name}</td>
           <td>${seat}</td>
           <td>Pending</td>
-          <td><button class="completeBtn">完成</button><button class="waitBtn">先生対応待ち</button></td>
+          <td><button class="completeBtn">解決済</button><button class="waitBtn">先生対応待ち</button></td>
         `;
 
                 const completeBtn = tableRow.querySelector(".completeBtn");
@@ -91,7 +91,7 @@
 
                 completeBtn.addEventListener("click", function () {
                     const statusCell = tableRow.querySelector("td:nth-child(3)");
-                    statusCell.textContent = "完成";
+                    statusCell.textContent = "解決済";
                     completeBtn.disabled = true;
                     waitBtn.disabled = false;
                 });
