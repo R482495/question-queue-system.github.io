@@ -1,28 +1,3 @@
-<?php
-// ファイルへのパス
-$dataFile = 'data.txt';
-
-// フォームから送信されたデータの処理
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = $_POST['name'] ?? '';
-    $seat = $_POST['seat'] ?? '';
-
-    // ファイルにデータを追記
-    $data = "$name, $seat, 対応待ち\n";
-    file_put_contents($dataFile, $data, FILE_APPEND);
-}
-
-// ファイルからデータを読み取り
-$questions = [];
-if (file_exists($dataFile)) {
-    $lines = file($dataFile, FILE_IGNORE_NEW_LINES);
-    foreach ($lines as $line) {
-        $question = explode(', ', $line);
-        $questions[] = $question;
-    }
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,14 +28,32 @@ if (file_exists($dataFile)) {
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($questions as $question): ?>
-            <tr>
-                <td><?= $question[0] ?></td>
-                <td><?= $question[1] ?></td>
-                <td><?= $question[2] ?></td>
-            </tr>
-            <?php endforeach; ?>
+            <?php
+            // ファイルからデータを読み取り、表示する
+            $file = 'questions.txt';
+            $data = file($file, FILE_IGNORE_NEW_LINES);
+            foreach ($data as $line) {
+                $question = explode(',', $line);
+                echo "<tr>";
+                echo "<td>" . $question[0] . "</td>";
+                echo "<td>" . $question[1] . "</td>";
+                echo "<td>" . $question[2] . "</td>";
+                echo "</tr>";
+            }
+            ?>
         </tbody>
     </table>
+
+    <?php
+    // フォームから送信されたデータをファイルに追記する
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $name = $_POST['name'] ?? '';
+        $seat = $_POST['seat'] ?? '';
+        $status = "対応待ち";
+        $data = "$name,$seat,$status\n";
+        file_put_contents($file, $data, FILE_APPEND);
+    }
+    ?>
 </body>
 </html>
+
