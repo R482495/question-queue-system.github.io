@@ -1,35 +1,40 @@
+<?php
+// ファイルへのパス
+$dataFile = 'data.txt';
+
+// フォームから送信されたデータの処理
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $name = $_POST['name'] ?? '';
+    $seat = $_POST['seat'] ?? '';
+
+    // ファイルにデータを追記
+    $data = "$name, $seat, 対応待ち\n";
+    file_put_contents($dataFile, $data, FILE_APPEND);
+}
+
+// ファイルからデータを読み取り
+$questions = [];
+if (file_exists($dataFile)) {
+    $lines = file($dataFile, FILE_IGNORE_NEW_LINES);
+    foreach ($lines as $line) {
+        $question = explode(', ', $line);
+        $questions[] = $question;
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>質問順番待ちシステム</title>
-    <style>
-        /* CSS for table styling */
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        th,
-        td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-    </style>
 </head>
-
 <body>
     <h1>質問順番待ちシステム</h1>
 
     <!-- Form to add a new question -->
-    <form id="addQuestionForm">
+    <form method="post">
         <label for="name">名前:</label>
         <input type="text" id="name" name="name" required=""><br><br>
         <label for="seat">座席:</label>
@@ -39,90 +44,23 @@
 
     <!-- Display of question queue -->
     <h2>質問順番</h2>
-    <table id="questionTable">
+    <table>
         <thead>
             <tr>
                 <th>名前</th>
                 <th>座席</th>
                 <th>状態</th>
-                <th>対応</th>
             </tr>
         </thead>
-        <tbody id="questionList">
-            <!-- Questions will be dynamically added here -->
+        <tbody>
+            <?php foreach ($questions as $question): ?>
+            <tr>
+                <td><?= $question[0] ?></td>
+                <td><?= $question[1] ?></td>
+                <td><?= $question[2] ?></td>
+            </tr>
+            <?php endforeach; ?>
         </tbody>
     </table>
-
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const form = document.getElementById("addQuestionForm");
-            const questionList = document.getElementById("questionList");
-            let questions = [];
-
-            // Load saved questions from local storage
-            const savedQuestions = localStorage.getItem("questions");
-            if (savedQuestions) {
-                questions = JSON.parse(savedQuestions);
-                questions.forEach(question => addQuestionToTable(question));
-            }
-
-            form.addEventListener("submit", function (event) {
-                event.preventDefault();
-                const name = form.elements["name"].value;
-                const seat = form.elements["seat"].value;
-                const newQuestion = { name, seat, status: "対応待ち" };
-                questions.push(newQuestion);
-                addQuestionToTable(newQuestion);
-                saveQuestions();
-                form.reset();
-            });
-
-            function addQuestionToTable(question) {
-                const tableRow = document.createElement("tr");
-                tableRow.innerHTML = `
-                    <td>${question.name}</td>
-                    <td>${question.seat}</td>
-                    <td>${question.status}</td>
-                    <td><button class="completeBtn">解決済</button><button class="waitBtn">先生対応待ち</button></td>
-                `;
-
-                const completeBtn = tableRow.querySelector(".completeBtn");
-                const waitBtn = tableRow.querySelector(".waitBtn");
-
-                completeBtn.addEventListener("click", function () {
-                    const index = questions.indexOf(question);
-                    questions.splice(index, 1);
-                    tableRow.remove();
-                    saveQuestions();
-                });
-
-                waitBtn.addEventListener("click", function () {
-                    waitBtn.disabled = true;
-                    completeBtn.disabled = false;
-                    question.status = "先生対応待ち";
-                    saveQuestions();
-                    const statusCell = tableRow.querySelector("td:nth-child(3)");
-                    statusCell.textContent = question.status;
-                });
-
-                completeBtn.addEventListener("click", function () {
-                    const statusCell = tableRow.querySelector("td:nth-child(3)");
-                    question.status = "解決済";
-                    statusCell.textContent = question.status;
-                    completeBtn.disabled = true;
-                    waitBtn.disabled = false;
-                    saveQuestions();
-                });
-
-                questionList.appendChild(tableRow);
-            }
-
-            function saveQuestions() {
-                localStorage.setItem("questions", JSON.stringify(questions));
-            }
-        });
-    </script>
 </body>
-
 </html>
