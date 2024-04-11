@@ -54,52 +54,72 @@
     </table>
 
 
-    </form>
-
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const form = document.getElementById("addQuestionForm");
             const questionList = document.getElementById("questionList");
+            let questions = [];
+
+            // Load saved questions from local storage
+            const savedQuestions = localStorage.getItem("questions");
+            if (savedQuestions) {
+                questions = JSON.parse(savedQuestions);
+                questions.forEach(question => addQuestionToTable(question));
+            }
 
             form.addEventListener("submit", function (event) {
                 event.preventDefault();
                 const name = form.elements["name"].value;
                 const seat = form.elements["seat"].value;
-                addQuestion(name, seat);
+                const newQuestion = { name, seat, status: "対応待ち" };
+                questions.push(newQuestion);
+                addQuestionToTable(newQuestion);
+                saveQuestions();
                 form.reset();
             });
 
-            function addQuestion(name, seat) {
+            function addQuestionToTable(question) {
                 const tableRow = document.createElement("tr");
                 tableRow.innerHTML = `
-          <td>${name}</td>
-          <td>${seat}</td>
-          <td>対応待ち</td>
-          <td><button class="completeBtn">解決済</button><button class="waitBtn">先生対応待ち</button></td>
-        `;
+                    <td>${question.name}</td>
+                    <td>${question.seat}</td>
+                    <td>${question.status}</td>
+                    <td><button class="completeBtn">解決済</button><button class="waitBtn">先生対応待ち</button></td>
+                `;
 
                 const completeBtn = tableRow.querySelector(".completeBtn");
                 const waitBtn = tableRow.querySelector(".waitBtn");
 
                 completeBtn.addEventListener("click", function () {
+                    const index = questions.indexOf(question);
+                    questions.splice(index, 1);
                     tableRow.remove();
+                    saveQuestions();
                 });
 
                 waitBtn.addEventListener("click", function () {
                     waitBtn.disabled = true;
                     completeBtn.disabled = false;
+                    question.status = "先生対応待ち";
+                    saveQuestions();
                     const statusCell = tableRow.querySelector("td:nth-child(3)");
-                    statusCell.textContent = "先生対応待ち";
+                    statusCell.textContent = question.status;
                 });
 
                 completeBtn.addEventListener("click", function () {
                     const statusCell = tableRow.querySelector("td:nth-child(3)");
-                    statusCell.textContent = "解決済";
+                    question.status = "解決済";
+                    statusCell.textContent = question.status;
                     completeBtn.disabled = true;
                     waitBtn.disabled = false;
+                    saveQuestions();
                 });
 
                 questionList.appendChild(tableRow);
+            }
+
+            function saveQuestions() {
+                localStorage.setItem("questions", JSON.stringify(questions));
             }
         });
     </script>
