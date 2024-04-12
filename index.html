@@ -1,18 +1,35 @@
-
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 
 <head>
-    <meta charset="ja">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>質問順番待ちシステム</title>
+    <style>
+        /* CSS for table styling */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 
 <body>
     <h1>質問順番待ちシステム</h1>
 
     <!-- Form to add a new question -->
-    <form method="post">
+    <form id="addQuestionForm">
         <label for="name">名前:</label>
         <input type="text" id="name" name="name" required><br><br>
         <label for="seat">座席:</label>
@@ -22,40 +39,68 @@
 
     <!-- Display of question queue -->
     <h2>質問順番</h2>
-    <table>
+    <table id="questionTable">
         <thead>
             <tr>
                 <th>名前</th>
                 <th>座席</th>
                 <th>状態</th>
+                <th>対応</th>
             </tr>
         </thead>
-        <tbody>
-            <?php
-            $file = 'questions.txt';
-
-            // フォームから送信されたデータをファイルに追記する
-            if ($_SERVER["REQUEST_METHOD"] == "POST") {
-                $name = $_POST['name'] ?? '';
-                $seat = $_POST['seat'] ?? '';
-                $status = "対応待ち";
-                $data = "$name,$seat,$status\n";
-                file_put_contents($file, $data, FILE_APPEND);
-            }
-
-            // ファイルからデータを読み取り、表示する
-            $data = file($file, FILE_IGNORE_NEW_LINES);
-            foreach ($data as $line) {
-                $question = explode(',', $line);
-                echo "<tr>";
-                echo "<td>" . $question[0] . "</td>";
-                echo "<td>" . $question[1] . "</td>";
-                echo "<td>" . $question[2] . "</td>";
-                echo "</tr>";
-            }
-            ?>
+        <tbody id="questionList">
+            <!-- Questions will be dynamically added here -->
         </tbody>
     </table>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("addQuestionForm");
+            const questionList = document.getElementById("questionList");
+
+            form.addEventListener("submit", function (event) {
+                event.preventDefault();
+                const name = form.elements["name"].value;
+                const seat = form.elements["seat"].value;
+                addQuestion(name, seat);
+                form.reset();
+            });
+
+            function addQuestion(name, seat) {
+                const tableRow = document.createElement("tr");
+                tableRow.innerHTML = `
+          <td>${name}</td>
+          <td>${seat}</td>
+          <td>Pending</td>
+          <td><button class="completeBtn">完成</button><button class="waitBtn">先生対応待ち</button></td>
+        `;
+
+                const completeBtn = tableRow.querySelector(".completeBtn");
+                const waitBtn = tableRow.querySelector(".waitBtn");
+
+                completeBtn.addEventListener("click", function () {
+                    tableRow.remove();
+                });
+
+                waitBtn.addEventListener("click", function () {
+                    waitBtn.disabled = true;
+                    completeBtn.disabled = false;
+                    const statusCell = tableRow.querySelector("td:nth-child(3)");
+                    statusCell.textContent = "先生対応待ち";
+                });
+
+                completeBtn.addEventListener("click", function () {
+                    const statusCell = tableRow.querySelector("td:nth-child(3)");
+                    statusCell.textContent = "完成";
+                    completeBtn.disabled = true;
+                    waitBtn.disabled = false;
+                });
+
+                questionList.appendChild(tableRow);
+            }
+        });
+    </script>
+
 </body>
 
 </html>
