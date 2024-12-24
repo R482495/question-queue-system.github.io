@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>���⏇�ԑ҂��V�X�e��</title>
+    <title>質問順番待ちシステム</title>
     <style>
-        /* CSS for table styling */
+        /* テーブルのスタイル定義 */
         table {
             border-collapse: collapse;
             width: 100%;
@@ -23,84 +23,115 @@
             background-color: #f2f2f2;
         }
     </style>
-</head>
-
-<body>
-    <h1>���⏇�ԑ҂��V�X�e��</h1>
-
-    <!-- Form to add a new question -->
-    <form id="addQuestionForm">
-        <label for="name">���O:</label>
-        <input type="text" id="name" name="name" required><br><br>
-        <label for="seat">����:</label>
-        <input type="text" id="seat" name="seat" required><br><br>
-        <button type="submit">���₷��</button>
-    </form>
-
-    <!-- Display of question queue -->
-    <h2>���⏇��</h2>
-    <table id="questionTable">
-        <thead>
-            <tr>
-                <th>���O</th>
-                <th>����</th>
-                <th>���</th>
-                <th>�Ή�</th>
-            </tr>
-        </thead>
-        <tbody id="questionList">
-            <!-- Questions will be dynamically added here -->
-        </tbody>
-    </table>
-
     <script>
+        let currentData = []
+
+        /* 質問をGoogle Sheetsに追加する関数 */
+        function addQuestionToSheet(name, seat, status) {
+            google.script.run.withSuccessHandler(function () {
+                addQuestionToTable(name, seat, status);
+                loadQuestions(); // 追加後に質問を再読み込み
+            }).addQuestion(name, seat, status);
+        }
+
+        /* 質問をHTMLテーブルに追加する関数 */
+        function addQuestionToTable(name, seat, status) {
+            const tableRow = document.createElement("tr");
+            tableRow.innerHTML = `
+                <td>${name}</td>
+                <td>${seat}</td>
+                <td>${status}</td>
+            `;
+            document.getElementById("questionList").appendChild(tableRow);
+            // const completeBtn = tableRow.querySelector(".completeBtn");
+            // const waitBtn = tableRow.querySelector(".waitBtn");
+
+            /* 解決済ボタンのイベントリスナー */
+            // completeBtn.addEventListener("click", function () {
+            //     google.script.run.withSuccessHandler(function() {
+            //         loadQuestions(); // 削除後に質問を再読み込み
+            //     }).removeQuestion(name, seat);
+            //     tableRow.remove();
+            // });
+
+            // /* 対応中ボタンのイベントリスナー */
+            // waitBtn.addEventListener("click", function () {
+            //     let newStatus;
+            //     if (waitBtn.textContent === "対応中") {
+            //         newStatus = "対応中";
+            //         waitBtn.textContent = "対応待ち";
+            //         document.getElementById("questionList").appendChild(tableRow);
+
+            //     } else {
+            //         newStatus = "対応待ち";
+            //         waitBtn.textContent = "対応中";
+            //         document.getElementById("questionList").appendChild(tableRow);
+
+            //     }
+            //     google.script.run.withSuccessHandler(function() {
+            //         loadQuestions(); // 更新後に質問を再読み込み
+            //     }).updateQuestionStatus(name, seat, newStatus);
+            // });
+
+        }
+
+        /* 質問をロードしてテーブルに表示する関数 */
+        function loadQuestions() {
+            google.script.run.withSuccessHandler(function (data) {
+                if (JSON.stringify(data) !== JSON.stringify(currentData)) {
+                    currentData = data;
+                    const questionList = document.getElementById("questionList");
+                    questionList.innerHTML = '';
+
+                    data.forEach(function (row) {
+                        addQuestionToTable(row[0], row[1], row[2]);
+                    });
+                }
+            }).getQuestions();
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
+            loadQuestions();
+
             const form = document.getElementById("addQuestionForm");
-            const questionList = document.getElementById("questionList");
 
             form.addEventListener("submit", function (event) {
                 event.preventDefault();
                 const name = form.elements["name"].value;
                 const seat = form.elements["seat"].value;
-                addQuestion(name, seat);
+                const status = "対応待ち"; // 初期ステータスを設定
+                addQuestionToSheet(name, seat, status); // ステータスを追加
                 form.reset();
             });
 
-            function addQuestion(name, seat) {
-                const tableRow = document.createElement("tr");
-                tableRow.innerHTML = `
-          <td>${name}</td>
-          <td>${seat}</td>
-          <td>Pending</td>
-          <td><button class="completeBtn">����</button><button class="waitBtn">�搶�Ή��҂�</button></td>
-        `;
-
-                const completeBtn = tableRow.querySelector(".completeBtn");
-                const waitBtn = tableRow.querySelector(".waitBtn");
-
-                completeBtn.addEventListener("click", function () {
-                    tableRow.remove();
-                });
-
-                waitBtn.addEventListener("click", function () {
-                    waitBtn.disabled = true;
-                    completeBtn.disabled = false;
-                    const statusCell = tableRow.querySelector("td:nth-child(3)");
-                    statusCell.textContent = "�搶�Ή��҂�";
-                });
-
-                completeBtn.addEventListener("click", function () {
-                    const statusCell = tableRow.querySelector("td:nth-child(3)");
-                    statusCell.textContent = "����";
-                    completeBtn.disabled = true;
-                    waitBtn.disabled = false;
-                });
-
-                questionList.appendChild(tableRow);
-            }
+            // 定期的にデータをチェック
+            setInterval(loadQuestions, 1000); // 1秒ごとにデータをチェック
         });
     </script>
+</head>
 
+<body>
+    <h1>質問順番待ちシステム</h1>
+    <form id="addQuestionForm">
+        <label for="name">名前:</label>
+        <input type="text" id="name" name="name" required><br><br>
+        <label for="seat">座席:</label>
+        <input type="text" id="seat" name="seat" required><br><br>
+        <button type="submit">質問する</button>
+    </form>
+    <h2>質問順番</h2>
+    <table id="questionTable">
+        <thead>
+            <tr>
+                <th>名前</th>
+                <th>座席</th>
+                <th>状態</th>
+            </tr>
+        </thead>
+
+        <tbody id="questionList">
+        </tbody>
+    </table>
 </body>
 
 </html>
